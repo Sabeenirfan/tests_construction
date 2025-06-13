@@ -89,6 +89,11 @@ def test_add_valid_supplier(browser):
     browser.get(BASE_URL)
     open_suppliers_tab(browser)
     submit_supplier_form(browser, "Supplier X", "Ahmed", "ahmed@example.com", "03123456789", "Steel")
+    
+    # ✅ Wait up to 5 seconds until the supplier name is in the table
+    wait = WebDriverWait(browser, 5)
+    wait.until(lambda driver: "Supplier X" in driver.find_element(By.ID, "suppliersTableBody").text)
+
     assert "Supplier X" in browser.find_element(By.ID, "suppliersTableBody").text
 
 # 4. Add supplier with invalid email (no validation) - will add
