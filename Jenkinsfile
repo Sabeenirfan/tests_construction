@@ -44,6 +44,7 @@ pipeline {
         success {
             echo 'Pipeline completed successfully!'
              // Clone application code
+             // Clone application code
         }
     }
 }
