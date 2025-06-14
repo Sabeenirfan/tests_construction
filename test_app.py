@@ -21,6 +21,7 @@ def browser():
     options.add_argument("--disable-dev-shm-usage")
     
     # ✅ Use a unique, isolated user-data-dir per session
+    #djjd
     user_data_dir = tempfile.mkdtemp()
     options.add_argument(f"--user-data-dir={user_data_dir}")
 
