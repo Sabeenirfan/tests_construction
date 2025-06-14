@@ -154,9 +154,5 @@ def test_page_title(browser):
     browser.get(BASE_URL)
     assert "Construction Management System" in browser.title
     print("Triggering test")
-    print("Triggering test")
-    print("Triggering test")
-    print("Triggering test")
-    print("Triggering test")
-    print("Triggering test")
-    
+
+    # 10. Page title test
