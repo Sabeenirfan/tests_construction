@@ -157,4 +157,4 @@ def test_page_title(browser):
 
     # 10. Page title test
 
-# 10. Page title test
+ # 10. Page title test
