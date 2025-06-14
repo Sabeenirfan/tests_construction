@@ -156,3 +156,5 @@ def test_page_title(browser):
     print("Triggering test")
 
     # 10. Page title test
+
+# 10. Page title test
