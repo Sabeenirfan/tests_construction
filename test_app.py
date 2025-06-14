@@ -30,6 +30,7 @@ def browser():
     driver.quit()
 
     # Clean up the temporary profile directory
+    # Clean up the temporary profile directory
     try:
         import shutil
         shutil.rmtree(user_data_dir)
