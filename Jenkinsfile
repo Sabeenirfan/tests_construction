@@ -26,7 +26,7 @@ pipeline {
                                 break
                             fi
                             echo "Attempt $i: App not ready yet, waiting..."
-                            sleep 5
+                            sleep 30
                         done
                         
                         # Final check
