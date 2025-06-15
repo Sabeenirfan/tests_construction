@@ -7,7 +7,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.chrome.service import Service  # ✅ NEW import
 
 BASE_URL = "http://3.144.254.243:3002"
 
@@ -17,13 +16,14 @@ def browser():
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--remote-debugging-port=9222")
     
     user_data_dir = tempfile.mkdtemp()
     options.add_argument(f"--user-data-dir={user_data_dir}")
 
-    # ✅ Correct WebDriver initialization
-    service = Service("/usr/local/bin/chromedriver")
-    driver = webdriver.Chrome(service=service, options=options)
+    # ✅ Let Selenium automatically manage the ChromeDriver
+    driver = webdriver.Chrome(options=options)
 
     yield driver
     driver.quit()
