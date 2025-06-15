@@ -1,6 +1,7 @@
 pipeline {
     agent any
     stages {
+
         stage('Clone Repositories') {
             steps {
                 dir('app') {
@@ -19,6 +20,7 @@ pipeline {
                         docker build -t construction-app .
                         docker rm -f app_container || true
                         docker run -d --name app_container -p 3002:3002 construction-app
+
                         # Wait until app is up
                         for i in {1..10}; do
                             if curl -s http://localhost:3002 > /dev/null; then
@@ -37,8 +39,9 @@ pipeline {
             steps {
                 dir('tests') {
                     sh '''
+                        # Run tests with access to host network
                         docker run --rm \
-                            --network host \  # allows access to localhost:3002
+                            --network host \
                             -v $PWD:/tests \
                             -v $WORKSPACE/app:/app \
                             -w /tests \
