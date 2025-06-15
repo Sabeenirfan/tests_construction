@@ -23,6 +23,7 @@ def browser():
     options.add_argument(f"--user-data-dir={user_data_dir}")
 
     # ✅ Let Selenium automatically manage the ChromeDriver
+    #test
     driver = webdriver.Chrome(options=options)
 
     yield driver
