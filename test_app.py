@@ -25,7 +25,8 @@ def browser():
     user_data_dir = tempfile.mkdtemp()
     options.add_argument(f"--user-data-dir={user_data_dir}")
 
-    driver = webdriver.Chrome(options=options)
+    driver = webdriver.Chrome(executable_path="/usr/local/bin/chromedriver", options=options)
+
     yield driver
     driver.quit()
 
