@@ -21,7 +21,6 @@ pipeline {
                         docker rm -f app_container || true
                         docker run -d --name app_container -p 3002:3002 construction-app
 
-                        # Wait until app is up
                         for i in {1..10}; do
                             if curl -s http://localhost:3002 > /dev/null; then
                                 echo "App is up!"
@@ -35,20 +34,19 @@ pipeline {
             }
         }
 
-        stage('Run Tests Inside Docker') {
+        stage('Run Selenium Tests') {
             steps {
                 dir('tests') {
                     sh '''
-                        # Run tests with access to host network
                         docker run --rm \
                             --network host \
                             -v $PWD:/tests \
                             -v $WORKSPACE/app:/app \
                             -w /tests \
-                            python:3.12 bash -c "
+                            python:3.12-slim bash -c "
                                 apt-get update && \
-                                apt-get install -y chromium chromium-driver curl && \
-                                pip install -r requirement.txt && \
+                                apt-get install -y wget unzip curl chromium chromium-driver && \
+                                pip install --no-cache-dir -r requirements.txt && \
                                 pytest --maxfail=1 --disable-warnings -v
                             "
                     '''
