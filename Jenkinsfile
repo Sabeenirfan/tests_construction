@@ -46,35 +46,7 @@ pipeline {
                         try {
                             sh '''
                                 echo "Starting Selenium tests..."
-                                docker run --rm \
-                                    --network host \
-                                    -v $PWD:/tests \
-                                    -w /tests \
-                                    python:3.12-slim bash -c "
-                                        echo 'Installing system dependencies...' && \
-                                        apt-get update -qq && \
-                                        apt-get install -y -qq \
-                                            wget \
-                                            unzip \
-                                            curl \
-                                            chromium \
-                                            chromium-driver \
-                                            xvfb && \
-                                        echo 'Checking requirement.txt...' && \
-                                        ls -la requirement.txt && \
-                                        cat requirement.txt && \
-                                        echo 'Installing Python dependencies...' && \
-                                        pip install --no-cache-dir --upgrade pip && \
-                                        pip install --no-cache-dir -r requirement.txt && \
-                                        echo 'Verifying installations...' && \
-                                        pip list | grep -E '(pytest|selenium)' && \
-                                        which pytest && \
-                                        pytest --version && \
-                                        echo 'Running tests...' && \
-                                        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & \
-                                        export DISPLAY=:99 && \
-                                        pytest --maxfail=1 --disable-warnings -v --tb=short
-                                    "
+                                docker run --rm --network host -v $PWD:/tests -w /tests python:3.12-slim bash -c "echo 'Installing system dependencies...' && apt-get update -qq && apt-get install -y -qq wget unzip curl chromium chromium-driver xvfb && echo 'Checking requirement.txt...' && ls -la requirement.txt && cat requirement.txt && echo 'Installing Python dependencies...' && pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirement.txt && echo 'Verifying installations...' && pip list | grep -E '(pytest|selenium)' && which pytest && pytest --version && echo 'Running tests...' && Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & export DISPLAY=:99 && pytest --maxfail=1 --disable-warnings -v --tb=short"
                             '''
                         } catch (Exception e) {
                             echo "Test execution failed: ${e.getMessage()}"
