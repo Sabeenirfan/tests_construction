@@ -24,6 +24,7 @@ def browser():
 
     # ✅ Let Selenium automatically manage the ChromeDriver
     #test
+    #test
     driver = webdriver.Chrome(options=options)
 
     yield driver
