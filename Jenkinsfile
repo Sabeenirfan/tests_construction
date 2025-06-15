@@ -31,10 +31,11 @@ pipeline {
                         echo "🧼 Removing existing container if exists..."
                         docker rm -f $CONTAINER_NAME || true
 
-                        echo "🚀 Running the container..."
+                        echo "🔗 Creating Docker network (if not exists)..."
                         docker network create test_net || true
-                        docker run -d --name $CONTAINER_NAME --network test_net -p $APP_PORT:$APP_PORT $APP_NAME
 
+                        echo "🚀 Running the container..."
+                        docker run -d --name $CONTAINER_NAME --network test_net -p $APP_PORT:$APP_PORT $APP_NAME
 
                         echo "⏳ Waiting for the app to start..."
                         for i in {1..15}; do
@@ -66,13 +67,12 @@ pipeline {
                                 echo "🧪 Starting Selenium tests..."
 
                                 docker run --rm --network test_net \
-
                                     -v $PWD:/tests -w /tests \
                                     $TEST_IMAGE bash -c "
                                     set -e
                                     apt-get update -qq
                                     apt-get install -y -qq wget unzip curl chromium chromium-driver xvfb
-                                    
+
                                     echo '📦 Installing Python dependencies...'
                                     pip install --no-cache-dir --upgrade pip
                                     pip install --no-cache-dir -r requirement.txt
@@ -85,6 +85,7 @@ pipeline {
                                     echo '🎬 Running tests with Xvfb...'
                                     Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
                                     export DISPLAY=$DISPLAY
+
                                     pytest --maxfail=1 --disable-warnings -v --tb=short
                                 "
                             '''
