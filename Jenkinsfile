@@ -46,7 +46,7 @@ pipeline {
                             python:3.12-slim bash -c "
                                 apt-get update && \
                                 apt-get install -y wget unzip curl chromium chromium-driver && \
-                                pip install --no-cache-dir -r requirements.txt && \
+                                pip install --no-cache-dir -r requirement.txt && \
                                 pytest --maxfail=1 --disable-warnings -v
                             "
                     '''
