@@ -41,8 +41,8 @@ ENV PATH=$PATH:/usr/local/bin
 WORKDIR /app
 
 # Copy and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirement.txt .
+RUN pip install --no-cache-dir -r requirement.txt
 
 # Copy the rest of the code
 COPY . .
