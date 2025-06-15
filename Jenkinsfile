@@ -32,7 +32,9 @@ pipeline {
                         docker rm -f $CONTAINER_NAME || true
 
                         echo "🚀 Running the container..."
-                        docker run -d --name $CONTAINER_NAME -p $APP_PORT:$APP_PORT $APP_NAME
+                        docker network create test_net || true
+                        docker run -d --name $CONTAINER_NAME --network test_net -p $APP_PORT:$APP_PORT $APP_NAME
+
 
                         echo "⏳ Waiting for the app to start..."
                         for i in {1..15}; do
@@ -63,7 +65,8 @@ pipeline {
                             sh '''
                                 echo "🧪 Starting Selenium tests..."
 
-                                docker run --rm --network host \
+                                docker run --rm --network test_net \
+
                                     -v $PWD:/tests -w /tests \
                                     $TEST_IMAGE bash -c "
                                     set -e
