@@ -15,6 +15,7 @@ pipeline {
             steps {
                 dir('app') {
                     sh '''
+                        # Build only the app (not the test container)
                         docker build -t construction-app .
                         docker rm -f app_container || true
                         docker run -d --name app_container -p 3002:3002 construction-app
