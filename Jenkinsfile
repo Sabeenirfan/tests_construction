@@ -1,7 +1,6 @@
 pipeline {
     agent any
     stages {
-
         stage('Clone Repositories') {
             steps {
                 dir('app') {
@@ -12,7 +11,6 @@ pipeline {
                 }
             }
         }
-
         stage('Build and Run App Container') {
             steps {
                 dir('app') {
@@ -20,7 +18,6 @@ pipeline {
                         docker build -t construction-app .
                         docker rm -f app_container || true
                         docker run -d --name app_container -p 3002:3002 construction-app
-
                         for i in {1..10}; do
                             if curl -s http://localhost:3002 > /dev/null; then
                                 echo "App is up!"
@@ -33,7 +30,6 @@ pipeline {
                 }
             }
         }
-
         stage('Run Selenium Tests') {
             steps {
                 dir('tests') {
@@ -54,13 +50,13 @@ pipeline {
             }
         }
     }
-
     post {
         always {
             sh '''
                 docker rm -f app_container || true
                 docker system prune -f || true
             '''
+            echo 'Cleanup completed.'
         }
         failure {
             echo 'Pipeline failed. Check the logs above for details.'
