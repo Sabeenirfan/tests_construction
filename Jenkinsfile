@@ -1,5 +1,14 @@
 pipeline {
     agent any
+
+    environment {
+        APP_PORT = '3002'
+        APP_NAME = 'construction-app'
+        CONTAINER_NAME = 'app_container'
+        TEST_IMAGE = 'python:3.12-slim'
+        DISPLAY = ':99'
+    }
+
     stages {
         stage('Clone Repositories') {
             steps {
@@ -11,46 +20,74 @@ pipeline {
                 }
             }
         }
+
         stage('Build and Run App Container') {
             steps {
                 dir('app') {
                     sh '''
-                        # Build only the app (not the test container)
-                        docker build -t construction-app .
-                        docker rm -f app_container || true
-                        docker run -d --name app_container -p 3002:3002 construction-app
-                        echo "Waiting for app to start..."
+                        echo "🔨 Building Docker image..."
+                        docker build -t $APP_NAME .
+
+                        echo "🧼 Removing existing container if exists..."
+                        docker rm -f $CONTAINER_NAME || true
+
+                        echo "🚀 Running the container..."
+                        docker run -d --name $CONTAINER_NAME -p $APP_PORT:$APP_PORT $APP_NAME
+
+                        echo "⏳ Waiting for the app to start..."
                         for i in {1..15}; do
-                            if curl -s http://localhost:3002 > /dev/null; then
-                                echo "App is up and running!"
+                            if curl -s http://localhost:$APP_PORT > /dev/null; then
+                                echo "✅ App is up and running!"
                                 break
                             fi
                             echo "Attempt $i: App not ready yet, waiting..."
-                            sleep 30
+                            sleep 10
                         done
-                        
-                        # Final check
-                        if ! curl -s http://localhost:3002 > /dev/null; then
-                            echo "App failed to start properly"
-                            docker logs app_container
+
+                        echo "🔍 Final health check..."
+                        if ! curl -s http://localhost:$APP_PORT > /dev/null; then
+                            echo "❌ App failed to start properly."
+                            docker logs $CONTAINER_NAME
                             exit 1
                         fi
                     '''
                 }
             }
         }
+
         stage('Run Selenium Tests') {
             steps {
                 dir('tests') {
                     script {
                         try {
                             sh '''
-                                echo "Starting Selenium tests..."
-                                docker run --rm --network host -v $PWD:/tests -w /tests python:3.12-slim bash -c "echo 'Installing system dependencies...' && apt-get update -qq && apt-get install -y -qq wget unzip curl chromium chromium-driver xvfb && echo 'Checking requirement.txt...' && ls -la requirement.txt && cat requirement.txt && echo 'Installing Python dependencies...' && pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirement.txt && echo 'Verifying installations...' && pip list | grep -E '(pytest|selenium)' && which pytest && pytest --version && echo 'Running tests...' && Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & export DISPLAY=:99 && pytest --maxfail=1 --disable-warnings -v --tb=short"
+                                echo "🧪 Starting Selenium tests..."
+
+                                docker run --rm --network host \
+                                    -v $PWD:/tests -w /tests \
+                                    $TEST_IMAGE bash -c "
+                                    set -e
+                                    apt-get update -qq
+                                    apt-get install -y -qq wget unzip curl chromium chromium-driver xvfb
+                                    
+                                    echo '📦 Installing Python dependencies...'
+                                    pip install --no-cache-dir --upgrade pip
+                                    pip install --no-cache-dir -r requirement.txt
+
+                                    echo '🔍 Verifying test environment...'
+                                    which chromium || which chromium-browser || echo 'Chromium not found!'
+                                    which pytest
+                                    pytest --version
+
+                                    echo '🎬 Running tests with Xvfb...'
+                                    Xvfb $DISPLAY -screen 0 1024x768x24 > /dev/null 2>&1 &
+                                    export DISPLAY=$DISPLAY
+                                    pytest --maxfail=1 --disable-warnings -v --tb=short
+                                "
                             '''
                         } catch (Exception e) {
-                            echo "Test execution failed: ${e.getMessage()}"
-                            sh 'docker logs app_container || true'
+                            echo "⚠️ Selenium tests failed: ${e.getMessage()}"
+                            sh 'docker logs $CONTAINER_NAME || true'
                             throw e
                         }
                     }
@@ -58,34 +95,41 @@ pipeline {
             }
         }
     }
+
     post {
         always {
+            echo '🧹 Performing partial cleanup (app container will remain running)...'
             script {
                 try {
                     sh '''
-                        echo "Cleaning up containers..."
-                        docker rm -f app_container || true
-                        docker system prune -f || true
+                        echo "Cleaning up exited containers..."
+                        docker ps -a --filter "status=exited" --quiet | xargs -r docker rm
+
+                        echo "Removing dangling images and volumes..."
+                        docker system prune -f --volumes || true
                     '''
                 } catch (Exception e) {
-                    echo "Cleanup warning: ${e.getMessage()}"
+                    echo "⚠️ Cleanup warning: ${e.getMessage()}"
                 }
             }
-            echo 'Cleanup completed.'
         }
+
         failure {
-            echo 'Pipeline failed. Check the logs above for details.'
+            echo '❌ Pipeline failed. Debug information below:'
             script {
                 try {
-                    sh 'docker ps -a'
-                    sh 'docker logs app_container || echo "No app_container logs available"'
+                    sh '''
+                        docker ps -a
+                        docker logs $CONTAINER_NAME || echo "No logs found for app container"
+                    '''
                 } catch (Exception e) {
-                    echo "Could not retrieve debug info: ${e.getMessage()}"
+                    echo "⚠️ Could not retrieve debug info: ${e.getMessage()}"
                 }
             }
         }
+
         success {
-            echo 'Pipeline completed successfully! All tests passed.'
+            echo '✅ Pipeline completed successfully! All tests passed.'
         }
     }
 }
