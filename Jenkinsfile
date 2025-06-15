@@ -22,7 +22,7 @@ pipeline {
             }
         }
 
-        stage('Build and Run App Container') {
+        stage('Build and Run App Container (For Testing)') {
             steps {
                 dir('app') {
                     sh '''
@@ -35,7 +35,7 @@ pipeline {
                         echo "🔗 Creating network if not exists..."
                         docker network create test_net || true
 
-                        echo "🚀 Running the container..."
+                        echo "🚀 Running the container for test..."
                         docker run -d \
                             --name $CONTAINER_NAME \
                             --network test_net \
@@ -97,6 +97,21 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy App Container') {
+            steps {
+                dir('app') {
+                    sh '''
+                        echo "♻️ Redeploying app container for production use..."
+                        docker rm -f $CONTAINER_NAME || true
+                        docker run -d \
+                            --name $CONTAINER_NAME \
+                            -p $APP_PORT:$APP_PORT \
+                            $APP_NAME
+                    '''
+                }
+            }
+        }
     }
 
     post {
@@ -132,7 +147,7 @@ pipeline {
         }
 
         success {
-            echo '✅ Pipeline succeeded and app is running on port 3002.'
+            echo '✅ Pipeline succeeded and app is deployed on port 3002.'
         }
     }
 }
