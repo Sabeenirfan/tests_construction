@@ -60,8 +60,16 @@ pipeline {
                                             chromium \
                                             chromium-driver \
                                             xvfb && \
+                                        echo 'Checking requirement.txt...' && \
+                                        ls -la requirement.txt && \
+                                        cat requirement.txt && \
                                         echo 'Installing Python dependencies...' && \
-                                        pip install --no-cache-dir -q -r requirement.txt && \
+                                        pip install --no-cache-dir --upgrade pip && \
+                                        pip install --no-cache-dir -r requirement.txt && \
+                                        echo 'Verifying installations...' && \
+                                        pip list | grep -E '(pytest|selenium)' && \
+                                        which pytest && \
+                                        pytest --version && \
                                         echo 'Running tests...' && \
                                         Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 & \
                                         export DISPLAY=:99 && \
