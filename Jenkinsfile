@@ -104,10 +104,35 @@ pipeline {
                     sh '''
                         echo "♻️ Redeploying app container for production use..."
                         docker rm -f $CONTAINER_NAME || true
+                        
+                        echo "🚀 Starting production container..."
                         docker run -d \
                             --name $CONTAINER_NAME \
+                            --network test_net \
                             -p $APP_PORT:$APP_PORT \
                             $APP_NAME
+
+                        echo "⏳ Waiting for production app to start..."
+                        sleep 10
+                        
+                        echo "🔍 Production health check..."
+                        for i in {1..10}; do
+                            if curl -s http://localhost:$APP_PORT > /dev/null; then
+                                echo "✅ Production app is up and running on port $APP_PORT!"
+                                break
+                            fi
+                            echo "Attempt $i: Production app not ready yet, waiting..."
+                            sleep 5
+                        done
+
+                        if ! curl -s http://localhost:$APP_PORT > /dev/null; then
+                            echo "❌ Production app failed to start properly."
+                            echo "Container status:"
+                            docker ps -a --filter name=$CONTAINER_NAME
+                            echo "Container logs:"
+                            docker logs $CONTAINER_NAME
+                            exit 1
+                        fi
                     '''
                 }
             }
@@ -137,8 +162,12 @@ pipeline {
             script {
                 try {
                     sh '''
+                        echo "=== Container Status ==="
                         docker ps -a
+                        echo "=== App Container Logs ==="
                         docker logs $CONTAINER_NAME || echo "No logs found for app container"
+                        echo "=== Network Information ==="
+                        docker network ls
                     '''
                 } catch (e) {
                     echo "⚠️ Failed to collect logs: ${e.getMessage()}"
@@ -148,6 +177,13 @@ pipeline {
 
         success {
             echo '✅ Pipeline succeeded and app is deployed on port 3002.'
+            script {
+                sh '''
+                    echo "=== Final Status ==="
+                    docker ps --filter name=$CONTAINER_NAME
+                    echo "App should be accessible at: http://localhost:$APP_PORT"
+                '''
+            }
         }
     }
 }
