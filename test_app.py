@@ -97,7 +97,7 @@ def test_add_valid_supplier(browser):
 def test_add_supplier_invalid_email(browser):
     browser.get(BASE_URL)
     open_suppliers_tab(browser)
-    submit_supplier_form(browser, "Supplier Y", "Ahmed", "ali@gmail.com", "03123456789", "Steel")
+    submit_supplier_form(browser, "Supplier Y", "Ali", "ali@gmail.com", "03123456789", "Steel")
     wait = WebDriverWait(browser, 5)
     wait.until(lambda driver: "Supplier Y" in driver.find_element(By.ID, "suppliersTableBody").text)
     assert "Supplier Y" in browser.find_element(By.ID, "suppliersTableBody").text
@@ -135,7 +135,7 @@ def test_add_project_invalid_dates(browser):
 def test_supplier_phone_no_validation(browser):
     browser.get(BASE_URL)
     open_suppliers_tab(browser)
-    submit_supplier_form(browser, "Supplier Z", "Ali", "ali@example.com", "034566544321", "Concrete")
+    submit_supplier_form(browser, "Supplier Z", "Umar", "umar@example.com", "034566544321", "Concrete")
     assert "Supplier Z" in browser.find_element(By.ID, "suppliersTableBody").text
 
 def test_page_title(browser):
