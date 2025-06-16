@@ -132,6 +132,7 @@ pipeline {
             echo '✅ Pipeline completed successfully! All tests passed.'
             //u
             //i
+            //r
         }
     }
 }
