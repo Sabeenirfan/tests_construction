@@ -135,7 +135,7 @@ def test_add_project_invalid_dates(browser):
 def test_supplier_phone_no_validation(browser):
     browser.get(BASE_URL)
     open_suppliers_tab(browser)
-    submit_supplier_form(browser, "Supplier Z", "Ali", "ali@example.com", "phone123", "Concrete")
+    submit_supplier_form(browser, "Supplier Z", "Ali", "ali@example.com", "034566544321", "Concrete")
     assert "Supplier Z" in browser.find_element(By.ID, "suppliersTableBody").text
 
 def test_page_title(browser):
